@@ -18,19 +18,6 @@ alpha=0.5;
 w=foweight(alpha-1,k1+1);
 W =cell2mat( arrayfun(@(x) diag(x*ones(1,n)), w, 'UniformOutput', false));
 %%
-%linear system based on A,B
-  % A11=zeros(n*k,n*k);
-  % A1=eye(2);
-  % cellArray = repmat({A1}, 1, k-1);
-  % A11(1:end-2,3:end)=blkdiag(cellArray{:});
-  % A11(end-1:end,:)=cell2mat( arrayfun(@(x) diag(x*ones(1,n)), flip(w(1:k)-[w(2:k),0]), 'UniformOutput', false));
-  % A11(end-1:end,end-1:end)=A11(end-1:end,end-1:end)+A;
-  % B1=[zeros(n*k-2,m);B];
-  % C1=[zeros(2,n*k-2),eye(2)];
-  % G=ss(A11,B1,C1,0,1);
-  % y0=zeros(n*k,1);
-  % [y,tsim]=lsim(G,ones(m,100),[],y0);
-%%
 rng(42)
 u=randn(m,k1);
 %[~,~,Urank]=creatHankel(u(:),Tini,Tf+n*k,m);
@@ -38,13 +25,6 @@ u=randn(m,k1);
 x0=randn(n,1);
 x=trajectory(A,B,W,u,x0)+0*randn(2,k1);
 wd=[u',x']; 
-%%
-%arx identification
-% data=iddata(wd(:,m+1:end),wd(:,1:m),1);
-% sys_id=arx(data,[k*ones(n,n),k*ones(n,n), zeros(n,n) ],'Ts',1);
-% sys=ss(sys_id);
-%  y0=zeros(n*k,1);
-%  [y,tsim]=lsim(sys,ones(m,100),[],y0);
 %%
 %slra
 s.m=[k+1;k+1;k+1;k+1];
@@ -55,10 +35,8 @@ opt.solver='c';
 %opt.method='reg';
 [ph, info] = slra([wd(:,1);wd(:,2);wd(:,3);wd(:,4)], s, m*(k+1)+n*k ,opt);
 %%
-  %Ud1=u';
-  %Yd1=x';
-   Ud1=[ph(1:k1),ph(k1+1:m*k1)];
-   Yd1=[ph(m*k1+1:(m+1)*k1),ph((m+1)*k1+1:end)];
+Ud1=[ph(1:k1),ph(k1+1:m*k1)];
+Yd1=[ph(m*k1+1:(m+1)*k1),ph((m+1)*k1+1:end)];
 %%
 % Ud1 is [u1;u2] Yd1 is [y1;y2]
 [Up1,Uf1,U11]=creatHankel(Ud1(:,1),Tini,Tf,1);
