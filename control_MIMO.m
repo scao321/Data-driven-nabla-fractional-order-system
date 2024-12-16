@@ -4,12 +4,9 @@ clc
 m=2;
 n=2;% number of states
 A=[-0.8,1;-1,-0.3];
-%B=[-.1,0.5;.1,.2]; %currently used in the paper, need to be changed later
 B=[-1,2;1,1];
-eig(A)
-rank(ctrb(A,B))
 %%
-k=5;% n(b)=n*k, lag<=n(b), lag*output>=n(b)
+k=5;% n(B)=n*k, lag<=n(B), lag*output>=n(B)
 Tini=5;
 Tf=10;
 L=Tini+Tf;
@@ -18,21 +15,17 @@ alpha=0.5;
 w=foweight(alpha-1,k1+1);
 W =cell2mat( arrayfun(@(x) diag(x*ones(1,n)), w, 'UniformOutput', false));
 %%
-rng(42)
+rng(42) 
 u=randn(m,k1);
-%[~,~,Urank]=creatHankel(u(:),Tini,Tf+n*k,m);
-%rank(Urank)-(Tini+Tf+n*k)*m
 x0=randn(n,1);
 x=trajectory(A,B,W,u,x0)+0*randn(2,k1);
 wd=[u',x']; 
 %%
-%slra
+%slra [1] I. Markovsky and K. Usevich, "Software for weighted structured low-rank approximation," J. Comput. Appl. Math., vol. 256, pp. 278–292,2014
 s.m=[k+1;k+1;k+1;k+1];
 s.n=k1-k;
 s.w=[inf*ones(1,m*k1),ones(1,n*k1)]';
-%s.w=[inf*ones(1,m*k1),[inf*ones(1,k),ones(1,k1-k)],[inf*ones(1,k),ones(1,k1-k)]]';
 opt.solver='c';
-%opt.method='reg';
 [ph, info] = slra([wd(:,1);wd(:,2);wd(:,3);wd(:,4)], s, m*(k+1)+n*k ,opt);
 %%
 Ud1=[ph(1:k1),ph(k1+1:m*k1)];
@@ -44,15 +37,10 @@ Yd1=[ph(m*k1+1:(m+1)*k1),ph((m+1)*k1+1:end)];
 [Yp1,Yf1,Y11]=creatHankel(Yd1(:,1),Tini,Tf,1);
 [Yp2,Yf2,Y12]=creatHankel(Yd1(:,2),Tini,Tf,1);
 %%
-rank([U11;U12;Y11;Y12])-(m*(Tini+Tf)+n*k)
-%digits(100);
-%rank(vpa([U1;Y1]))-(m*(Tini+Tf)+n*k) % use vpa to convert to high precision
-
-%%
 kt=100;
 wt=foweight(alpha-1,kt+1);
 Wt =cell2mat( arrayfun(@(x) diag(x*ones(1,n)), wt, 'UniformOutput', false));
- g = sdpvar(k1-Tini-Tf+1,1);
+g = sdpvar(k1-Tini-Tf+1,1); % yalmip setup [2] J. Lofberg, "YALMIP : A toolbox for modeling and optimization in matlab," in In Proceedings of the CACSD Conference, Taipei, Taiwan, 2004
  yini1=zeros(Tini,1);
  yini2=zeros(Tini,1);
  up1=zeros(Tini,1);
@@ -63,23 +51,18 @@ uff=[];
 steps=1;
 yr1=[];
 yr2=[];
- T=pinv([Yp1;Yp2;Up1;Up2;Yf1;Yf2]);
  %%
-for r=1:kt/steps
+for r=1:kt/steps  
  objective =1*norm([yini1;yini2;up1;up2]-[Yp1;Yp2;Up1;Up2]*g,2);
  objective=objective+1*norm(yf1-Yf1*g,2)+1*norm(yf2-Yf2*g,2);
  objective=objective+0*norm(g,1)+0*norm(g,2);
- option=sdpsettings('solver','mosek');
+ option=sdpsettings('solver','mosek'); 
  Constraints=[[Uf1;Uf2]*g<=1*ones(n*Tf,1)];
  Constraints=[Constraints,[Uf1;Uf2]*g>=-1*ones(n*Tf,1)];
- %Constraints=[];
  sol = optimize(Constraints,objective,option);
  solution=value(g);
  uf1=Uf1*solution;
  uf2=Uf2*solution;
-   % g=T*[yini1;yini2;up1;up2;yf1;yf2];
-   % uf1=Uf1*g;
-   % uf2=Uf2*g;
   uff=[uff,[uf1(1:steps)';uf2(1:steps)']];
   xt=trajectory(A,B,Wt,uff,[0;0]);
 if steps<=Tini
@@ -95,12 +78,6 @@ else
 end
 yr1=[yr1;yf1(1:steps)];
 yr2=[yr2;yf2(1:steps)];
-% if r>10
-%     yf1=-1*ones(Tf,1);
-%     yf2=3*ones(Tf,1);
-%     % yf1=floor(r*steps/10)*ones(Tf,1);
-%     % yf2=-floor(r*steps/10)*ones(Tf,1);
-% end
 end
 
 %%
@@ -109,7 +86,6 @@ plot(0:99,yr2,LineWidth=2,Color='red');
 hold on
 plot(0:100,[0,xt(1,1:end)],"-.o",LineWidth=2,MarkerIndices=1:10:100,Color='blue')
 plot(0:100,[0,xt(2,1:end)],"--*",LineWidth=2,MarkerIndices=5:10:100,Color='#77AC30')
-%plot(yr1,'--',LineWidth=2);
 legend('Reference','x_1','x_2')
 grid on
 ylabel('Outputs','FontSize',15)

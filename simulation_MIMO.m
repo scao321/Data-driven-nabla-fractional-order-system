@@ -5,12 +5,12 @@ m=2;%number of inputs
 T=eye(2);
 A=[-0.8,1;-1,-0.3];B=[-1,2;1,1];
 %%
-k=6;% n(b)=n*k, lag<=n(b), lag*output>=n(b)
+k=6;% n(B)=n*k, lag<=n(B), lag*output>=n(B)
 Tini=10;
 Tf=10;
 L=Tini+Tf;
 k1=(m+1)*(L+n*k)-1;
-alpha=0.1;
+alpha=0.1; % fractional order
 w=foweight(alpha-1,k1+1);
 W =cell2mat( arrayfun(@(x) diag(x*ones(1,n)), w, 'UniformOutput', false));
 %%
@@ -27,20 +27,17 @@ sys=ss(sys_id);
 y0=zeros(n*k,1);
 [y,tsim]=lsim(sys,ones(m,100),[],y0);
 %%
-%slra
+%slra [1] I. Markovsky and K. Usevich, "Software for weighted structured low-rank approximation," J. Comput. Appl. Math., vol. 256, pp. 278–292,2014
 s.m=[k+1;k+1;k+1;k+1];
 s.n=k1-k;
 s.w=[inf*ones(1,m*k1),ones(1,n*k1)]';
 opt.solver='c';
 [ph, info] = slra([wd(:,1);wd(:,2);wd(:,3);wd(:,4)], s, m*(k+1)+n*k ,opt);
 %%
-  Ud1=[ph(1:k1),ph(k1+1:m*k1)];
-  Yd1=[ph(m*k1+1:(m+1)*k1),ph((m+1)*k1+1:end)];
-  %Ud1=u';
-  %Yd1=x';
-
-yff=dd_sim(u',x',Tini,Tf,m);
-yff1=dd_sim(Ud1,Yd1,Tini,Tf,m);
+Ud1=[ph(1:k1),ph(k1+1:m*k1)];
+Yd1=[ph(m*k1+1:(m+1)*k1),ph((m+1)*k1+1:end)];
+yff=dd_sim(u',x',Tini,Tf,m); % Simulation using the collected data directly
+yff1=dd_sim(Ud1,Yd1,Tini,Tf,m);% Simulation using the modified data
 %%
 kt=100;
 wt=foweight(alpha-1,kt+1);
@@ -69,23 +66,10 @@ histogram(err2,edges,Normalization="percentage")
 legend('Approximated','ARX')
 ytickformat("percentage")
 xlabel('Residual error of simulation')
-%%
-figure(3)
-subplot(2,1,1)
-plot(xt(1,1:end),LineWidth=2)
-hold on
-plot(yff(1,1:end),'--o',LineWidth=2,MarkerIndices=1:5:length(yff))
-plot(yff1(1,1:end),'--o',LineWidth=2,MarkerIndices=1:5:length(yff))
-plot(y(1:end,1),'--',LineWidth=2)
-subplot(2,1,2)
-plot(xt(2,1:end),LineWidth=2)
-hold on
-plot(yff(2,1:end),'--o',LineWidth=2,MarkerIndices=1:5:length(yff))
-plot(yff1(2,1:end),'--o',LineWidth=2,MarkerIndices=1:5:length(yff))
-plot(y(1:end,2),'--',LineWidth=2)
-legend('xr','xo','xd','xi');
+title('Histogram of residual errors')
 %%
 function yff=dd_sim(Ud1,Yd1,Tini,Tf,m)
+%step response based on behavior system theory
 [Up1,Uf1,~]=creatHankel(Ud1(:,1),Tini,Tf,1);
 [Up2,Uf2,~]=creatHankel(Ud1(:,2),Tini,Tf,1);
 [Yp1,Yf1,~]=creatHankel(Yd1(:,1),Tini,Tf,1);
