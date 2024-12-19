@@ -1,6 +1,6 @@
 # Data-drive-nabla-fractional-order-system
 
-This package contains the code implementation for the data-driven controllability and controller design method proposed in [add reference later].
+This package contains the code implementation used in [*Data-Driven Controllability and Controller Designs for Nabla Fractional Order Systems*](https://doi.org/10.1109/LCSYS.2024.3520906).
 
 Package and Toolbox used:
 
