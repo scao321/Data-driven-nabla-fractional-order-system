@@ -10,9 +10,13 @@ Other packages and toolboxes used:
 
 For citation:
 
-@ARTICLE{10810372,
+```BibTex 
+  @ARTICLE{10810372,
   author={Cao, Shiang and Chen, YangQuan},
   journal={IEEE Control Systems Letters}, 
   title={Data-Driven Controllability and Controller Designs for Nabla Fractional Order Systems}, 
   year={2024},
+  keywords={Data-driven controllability;nabla fractional order;optimal control},
   doi={10.1109/LCSYS.2024.3520906}}
+```
+
