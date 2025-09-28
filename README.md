@@ -4,7 +4,9 @@ This package contains the code implementation used in [*Data-Driven Controllabil
 
 The system considered in this study is
 
-$$\nabla^{\alpha}=Ax+Bu$$
+$$
+\nabla^{\alpha}x=Ax+Bu, \alpha\in \mathbb{R}, x\in \mathbb{R}^n, \text{and } u\in \mathbb{R}^m.
+$$
 
 Other packages and toolboxes used:
 
